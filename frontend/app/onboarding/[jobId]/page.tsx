@@ -45,20 +45,22 @@ export default function OnboardingPage() {
     : plan.architecture_summary;
 
   function citation(c: Citation) {
-    const overlapping = plan.tour_steps.find((s) => s.path === c.path && s.start <= c.end && s.end >= c.start);
-    const sameFile = plan.tour_steps.find((s) => s.path === c.path);
-    const nearest = [...plan.tour_steps].sort((a, b) => {
-      const distance = (step: typeof a) => {
-        if (step.path !== c.path) return Number.POSITIVE_INFINITY;
-        if (step.start <= c.end && step.end >= c.start) return 0;
-        return Math.min(Math.abs(step.start - c.end), Math.abs(c.start - step.end));
-      };
-      return distance(a) - distance(b);
-    })[0];
-    const target = overlapping || sameFile || (nearest && Number.isFinite(nearest.start) ? nearest : null);
-    if (target) setRequestedStep(target.step);
-    document.getElementById("code-tour")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  if (!plan) return; // Add this null check
+  
+  const overlapping = plan.tour_steps.find((s) => s.path === c.path && s.start <= c.end && s.end >= c.start);
+  const sameFile = plan.tour_steps.find((s) => s.path === c.path);
+  const nearest = [...plan.tour_steps].sort((a, b) => {
+    const distance = (step: typeof a) => {
+      if (step.path !== c.path) return Number.POSITIVE_INFINITY;
+      if (step.start <= c.end && step.end >= c.start) return 0;
+      return Math.min(Math.abs(step.start - c.end), Math.abs(c.start - step.end));
+    };
+    return distance(a) - distance(b);
+  })[0];
+  const target = overlapping || sameFile || (nearest && Number.isFinite(nearest.start) ? nearest : null);
+  if (target) setRequestedStep(target.step);
+  document.getElementById("code-tour")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
   return (
     <main className="min-h-screen bg-[#f7f8fa] p-4 lg:p-6">
