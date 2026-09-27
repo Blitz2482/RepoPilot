@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Send, MessageSquare, FileCode } from "lucide-react";
 
 interface Citation {
@@ -82,31 +81,33 @@ export function QAPanel({ jobId, onCitationClick }: QAPanelProps) {
     };
 
     return (
-        <Card className="h-full flex flex-col border-t-4 border-t-green-500">
-            <CardHeader className="pb-3 border-b">
+        <Card className="h-full flex flex-col border border-gray-200 shadow-sm overflow-hidden">
+            <CardHeader className="pb-3 border-b bg-white">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-green-500" />
+                    <MessageSquare className="h-5 w-5 text-[#0F62FE]" />
                     Grounded Q&A
                 </CardTitle>
             </CardHeader>
 
             {/* Messages Area */}
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+            <CardContent className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50/30">
                 {messages.map((msg) => (
                     <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[85%] rounded-lg p-3 ${msg.role === "user" ? "bg-[#0F62FE] text-white" : "bg-white border text-gray-800 shadow-sm"
+                        <div className={`max-w-[85%] ${msg.role === "user"
+                            ? "bg-[#0F62FE] text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm"
+                            : "bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm"
                             }`}>
                             <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
 
                             {/* Citations */}
                             {msg.role === "ai" && msg.citations && msg.citations.length > 0 && (
-                                <div className="mt-3 flex flex-wrap gap-2 border-t pt-2 border-gray-200">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-full">Sources:</span>
+                                <div className="mt-3 flex flex-wrap gap-2 border-t border-gray-200 pt-3">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-full">Sources</span>
                                     {msg.citations.map((cite, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => onCitationClick?.(cite)}
-                                            className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded text-[10px] font-mono transition-colors"
+                                            className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 hover:border-[#0F62FE] hover:text-[#0F62FE] hover:bg-white text-gray-600 px-2.5 py-1 rounded-full text-[10px] font-mono transition-all shadow-sm"
                                             title={`Go to ${cite.path}:${cite.start}`}
                                         >
                                             <FileCode className="h-3 w-3" />
@@ -121,9 +122,9 @@ export function QAPanel({ jobId, onCitationClick }: QAPanelProps) {
 
                 {isLoading && (
                     <div className="flex justify-start">
-                        <div className="bg-white border rounded-lg p-3 shadow-sm flex items-center gap-2 text-gray-500">
+                        <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex items-center gap-2 text-gray-500">
                             <Loader2 className="h-4 w-4 animate-spin text-[#0F62FE]" />
-                            <span className="text-sm">Thinking...</span>
+                            <span className="text-sm">Analyzing codebase...</span>
                         </div>
                     </div>
                 )}
@@ -138,12 +139,12 @@ export function QAPanel({ jobId, onCitationClick }: QAPanelProps) {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask about the codebase..."
                         disabled={isLoading}
-                        className="flex-1"
+                        className="flex-1 border-gray-200 focus-visible:ring-[#0F62FE]"
                     />
                     <Button
                         type="submit"
                         disabled={isLoading || !input.trim()}
-                        className="bg-[#0F62FE] hover:bg-[#0353E9] text-white"
+                        className="bg-[#0F62FE] hover:bg-[#0353E9] text-white shadow-sm"
                     >
                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>

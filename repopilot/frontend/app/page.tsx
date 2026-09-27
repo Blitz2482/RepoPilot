@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Rocket, Loader2 } from "lucide-react"; // Removed Github import
+import { Rocket, Loader2 } from "lucide-react";
 
 export default function SubmitScreen() {
   const router = useRouter();
@@ -33,7 +33,6 @@ export default function SubmitScreen() {
     setError("");
 
     try {
-      // Point this to your backend URL (default FastAPI port is 8000)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
       const response = await fetch(`${apiUrl}/api/repos`, {
@@ -64,8 +63,11 @@ export default function SubmitScreen() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-t-4 border-t-[#0F62FE]">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle Premium Glow Effect */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#0F62FE]/5 rounded-full blur-3xl -z-10" />
+
+      <Card className="w-full max-w-md shadow-xl border border-gray-200 bg-white/80 backdrop-blur-sm border-t-4 border-t-[#0F62FE]">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
             <div className="bg-[#0F62FE]/10 p-3 rounded-full">
@@ -86,7 +88,6 @@ export default function SubmitScreen() {
                 GitHub Repository URL
               </label>
               <div className="relative">
-                {/* Replaced Github icon with a simple text indicator */}
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
                   🔗
                 </div>
@@ -113,7 +114,7 @@ export default function SubmitScreen() {
               </label>
               <Select
                 value={role}
-                onValueChange={(value) => value && setRole(value)} // Handle null case
+                onValueChange={(value) => value && setRole(value)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select your role..." />
@@ -131,7 +132,7 @@ export default function SubmitScreen() {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm animate-in fade-in slide-in-from-top-1">
                 {error}
               </div>
             )}
@@ -139,7 +140,7 @@ export default function SubmitScreen() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-[#0F62FE] hover:bg-[#0353E9] text-white font-semibold transition-colors"
+              className="w-full bg-[#0F62FE] hover:bg-[#0353E9] text-white font-semibold transition-colors shadow-md"
               disabled={!isFormValid || isLoading}
             >
               {isLoading ? (
