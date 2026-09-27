@@ -1,7 +1,8 @@
 import os
 import uvicorn
-from dotenv import load_dotenv  # <--- MOVED TO TOP
-from fastapi import FastAPI
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request  # <--- Added Request here
+from fastapi.responses import JSONResponse  # <--- Added JSONResponse here
 from fastapi.middleware.cors import CORSMiddleware
 
 # LOAD ENV VARS FIRST!
@@ -23,6 +24,13 @@ app.add_middleware(
 
 # Include the API router
 app.include_router(router)
+
+# --- 🛡️ GLOBAL CRASH PROTECTION (PHASE 3) ---
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"🔥 UNHANDLED ERROR: {exc}")
+    return JSONResponse(status_code=500, content={"detail": "Internal server error. The team has been notified."})
+# ------------------------------------------
 
 @app.get("/health")
 async def health_check():
