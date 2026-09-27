@@ -1,6 +1,7 @@
 import asyncio
-from pipeline import run_job
+import re  # <--- PHASE 3: Added for strict URL validation
 import uuid
+from pipeline import run_job
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from typing import List, Optional
@@ -31,8 +32,9 @@ class AskResponse(BaseModel):
 @router.post("/repos")
 async def submit_repo(request: RepoSubmitRequest):
     """Accept a repo URL and role, save to DB, return a job_id."""
-    if not request.repo_url.startswith("https://github.com/"):
-        raise HTTPException(status_code=400, detail="Invalid GitHub URL.")
+    # 🛡️ PHASE 3: Strict GitHub URL Validation
+    if not re.match(r"^https://github\.com/[\w.-]+/[\w.-]+/?$", request.repo_url.strip()):
+        raise HTTPException(status_code=400, detail="Invalid GitHub URL format.")
     
     job_id = str(uuid.uuid4())
     
@@ -42,7 +44,7 @@ async def submit_repo(request: RepoSubmitRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
-    # 🔥 PHASE 3 ADDITION: Fire the background pipeline (non-blocking!)
+    # 🔥 PHASE 3: Fire the background pipeline (non-blocking!)
     asyncio.create_task(run_job(job_id, request.repo_url, request.role))
     
     return {"job_id": job_id, "status": "queued"}
