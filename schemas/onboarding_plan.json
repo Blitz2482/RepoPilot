@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepoPilot OnboardingPlan",
+  "type": "object",
+  "required": ["role", "tour_steps", "architecture_summary", "key_concepts"],
+  "properties": {
+    "role": {"type": "string"},
+    "tour_steps": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["step", "title", "path", "start", "end", "narration"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1, "maximum": 8},
+          "title": {"type": "string"},
+          "path": {"type": "string"},
+          "start": {"type": "integer", "minimum": 1},
+          "end": {"type": "integer", "minimum": 1},
+          "narration": {"type": "string"}
+        }
+      }
+    },
+    "architecture_summary": {"type": ["string", "object"]},
+    "key_concepts": {"type": "array", "items": {"type": "string"}}
+  }
+}

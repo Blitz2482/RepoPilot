@@ -1,146 +1,76 @@
-﻿# RepoPilot — IBM Bob 2.0 Playbook
+# RepoPilot — BOB_PLAYBOOK.md
 
-**Team:** [Team name]
-**Event:** IBM Bob 2.0 Hackathon
-**Submission date:** [Date]
-**Bob IDE version:** v2.0.2+
+## 1. Overview: how RepoPilot uses Bob Agent Mode
 
----
+RepoPilot's runtime analysis engine is designed around IBM Bob 2.0 Agent Mode and full-repository context. The orchestration sends two independent investigations in parallel:
 
-## 1. Overview — How We Used Bob
+- **ArchitectureAgent:** module map, entry points, and evidence-backed data flow.
+- **BusinessLogicAgent:** domain concepts, invariants, and state transitions.
 
-RepoPilot is an agentic AI platform for developer onboarding. IBM
-Bob 2.0 is not a wrapper or a helper — it is both the tool we built
-with and a runtime component of the product itself.
+The orchestrator merges the returned `AgentFinding` objects and asks the model to narrate the resulting code-tour anchors. The public output remains citation-first: claims point to `path:start-end` evidence.
 
-**Two roles for Bob:**
+## 2. Custom `.bob/rules/onboarding.md`
 
-1. **Development partner.** We used Bob IDE's Agent Mode, subagents,
-   and custom modes to build the RepoPilot codebase.
-2. **Runtime engine.** RepoPilot's backend invokes Bob via Bob Shell
-   to analyze user-submitted repositories.
+```text
+# Onboarding Rules
 
-Total Bobcoins used: [fill in]
-Total Bob sessions captured: [fill in — must be 15+]
-
----
-
-## 2. Custom Rules Configuration
-
-We shipped `.bob/rules/onboarding.md` to enforce evidence-based
-reasoning in every Bob interaction:
-
-```markdown
-[Paste the full contents of .bob/rules/onboarding.md here]
+1. Cite evidence: `path/to/file.ext:START-END`.
+2. Explain WHY, not just WHAT.
+3. Order the tour by "conceptual dependency", not file hierarchy.
+4. Prefer 8 tour steps. Reject tours with more than 12 steps.
+5. Every tour step must be readable in under 10 minutes.
 ```
 
-**Why this matters:** Bob's default behavior produces plausible
-but uncited summaries. Our rules require every claim to cite
-`path:start-end`, which is the foundation of RepoPilot's trust model.
+## 3. `agents.md` shipped with RepoPilot
 
----
+```text
+# RepoPilot Onboarding Agent
 
-## 3. The `agents.md` Contract
+## Identity
+You are the RepoPilot Onboarding Agent. You analyze a software repository and produce a structured onboarding plan for a new developer.
 
-We shipped `agents.md` at the repository root to give Bob a persistent
-identity across sessions:
+## Constraints
+- Every claim MUST cite `path:start-end`.
+- Do NOT speculate. If evidence is missing, say so.
+- Prefer the repository's own vocabulary over generic terms.
+- Never modify files. You are read-only.
 
-```markdown
-[Paste the full contents of agents.md here]
+## Subagents
+- ArchitectureAgent -> module map, entry points, data flow
+- BusinessLogicAgent -> core domain concepts, invariants
+
+## Output Schema
+Strict JSON conforming to `schemas/onboarding_plan.json`.
 ```
 
-**Why this matters:** The hackathon guide notes that the strongest
-submissions treated Bob as a teammate that needed onboarding. This
-file is Bob's onboarding document.
+## 4. Three concrete problem-solving examples
 
----
+### Example 1 — Repository architecture
+The Architecture Agent receives repository context plus a strict JSON schema. It must cite entry-point and module files rather than returning a generic architectural description. The resulting evidence becomes candidates for the eight-step tour.
 
-## 4. Three Specific Examples of Bob Solving Problems
+### Example 2 — Business logic grounding
+The Business Logic Agent is explicitly constrained to concepts and invariants visible in source. When the repository does not contain enough evidence, the prompt instructs it to return `insufficient evidence` rather than filling gaps from general knowledge.
 
-### Example 1 — [Title]
+### Example 3 — Citation-safe Q&A
+Q&A retrieves the top repository chunks before the model sees the question. The prompt tells the model to answer only from those chunks, and `qa.py` filters returned citations so the UI can only surface ranges that were actually retrieved.
 
-**Problem:** [What we were stuck on]
+## 5. Exact prompts
 
-**Bob interaction:** [What we asked Bob]
+The runtime prompts are stored in `backend/prompts.py`:
 
-**Bob's contribution:** [What Bob produced]
+- `ARCHITECTURE_PROMPT`
+- `BUSINESS_LOGIC_PROMPT`
+- `QA_PROMPT`
 
-**Evidence:** `bob_sessions/team_taskXX_description.png`
+Their key contract is JSON-only output, no speculation, and line-range citations.
 
----
+## 6. Screenshot index
 
-### Example 2 — [Title]
+Store submission screenshots under `/evidence/bob_sessions/` with names such as:
 
-**Problem:** [What we were stuck on]
+- `01_architecture_agent.png`
+- `02_business_logic_agent.png`
+- `03_narration_agent.png`
+- `04_qa_agent.png`
 
-**Bob interaction:** [What we asked Bob]
-
-**Bob's contribution:** [What Bob produced]
-
-**Evidence:** `bob_sessions/team_taskXX_description.png`
-
----
-
-### Example 3 — [Title]
-
-**Problem:** [What we were stuck on]
-
-**Bob interaction:** [What we asked Bob]
-
-**Bob's contribution:** [What Bob produced]
-
-**Evidence:** `bob_sessions/team_taskXX_description.png`
-
----
-
-## 5. The Exact Prompts We Used With Bob
-
-### Architecture Agent Prompt (from `backend/prompts.py`)
-
-```
-[Paste ARCHITECTURE_PROMPT]
-```
-
-### Business Logic Agent Prompt
-
-```
-[Paste BUSINESS_LOGIC_PROMPT]
-```
-
-### Q&A Retrieval Prompt
-
-```
-[Paste QA_PROMPT]
-```
-
----
-
-## 6. Screenshot Index
-
-All Bob task session screenshots are in `bob_sessions/`.
-
-| File | Task | Date |
-|------|------|------|
-| `team_task01_bob_setup_verify.png` | Verify Bob IDE + Shell | [date] |
-| `team_task02_first_call.png` | First successful Bob call | [date] |
-| `team_task03_architecture_agent.png` | Architecture Agent test | [date] |
-| `team_task04_subagent_test.png` | Parallel subagent test | [date] |
-| `team_task05_custom_rules_test.png` | Custom rules verification | [date] |
-| `team_task06_mcp_settings.png` | MCP settings review | [date] |
-| ... | [Add every screenshot here] | ... |
-
-Full count at submission: [fill in]
-
----
-
-## 7. Impact Summary
-
-- **Development time saved:** [estimate]
-- **RepoPilot runtime speed:** [average analysis time on 3 repos]
-- **Evidence-backed accuracy:** [manual spot-check %]
-
----
-
-## 8. What We Learned
-
-[3–5 sentences on Bob's strengths and limitations]
+The supplied source bundle did not contain real Bob session screenshots, so these must be captured when the live Bob endpoint is exercised.

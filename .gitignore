@@ -1,68 +1,19 @@
-﻿# ---------------------------
-# Python / Backend
-# ---------------------------
-.venv/
-venv/
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+.venv/
 .pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-*.egg-info/
 
-# ---------------------------
-# Node / Frontend
-# ---------------------------
-node_modules/
-.next/
-out/
-build/
-dist/
-.turbo/
-*.tsbuildinfo
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.vercel/
 
-# ---------------------------
-# Environment / Secrets
-# ---------------------------
+# Secrets / local environment
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
-secrets/
-*.key
 *.pem
 
-# ---------------------------
-# OS / Editor
-# ---------------------------
-.DS_Store
-Thumbs.db
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-.idea/
-
-# ---------------------------
-# Hackathon / Bob
-# ---------------------------
-/tmp/bob_logs/
-*.bob.log
-
-# NEVER ignore bob_sessions — it is a submission requirement
-!bob_sessions/
-!bob_sessions/**
-
-# ---------------------------
-# Repo internals
-# ---------------------------
-/tmp/
-*.log
-
-.env
-/backend/
-test_ky/
-test_fastapi/
-test_express/
+# Runtime
+/tmp/repopilot/

@@ -1,0 +1,16 @@
+{
+  "service": "repopilot-api",
+  "source_root": ".",
+  "dockerfile_path": "backend/Dockerfile",
+  "healthcheck_path": "/health",
+  "public_protocol": "https",
+  "replicas": 1,
+  "required_variable": {
+    "RAILWAY_DOCKERFILE_PATH": "backend/Dockerfile"
+  },
+  "notes": [
+    "Use the Railway dashboard or current CLI to connect the repository.",
+    "Do not add deprecated railway.json/railway.toml files to a new service.",
+    "Use one replica unless Redis is configured for cross-process progress events."
+  ]
+}

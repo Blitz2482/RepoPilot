@@ -1,0 +1,20 @@
+{
+  "role": "Full-Stack",
+  "architecture_summary": {
+    "overview": "Fallback demo data keeps the product walkthrough visible when live repository analysis is unavailable.",
+    "modules": ["frontend", "backend", "analysis"],
+    "entry_points": ["backend/main.py", "frontend/app/page.tsx"],
+    "data_flow": "Submit repository -> analyze -> synthesize -> display tour"
+  },
+  "key_concepts": ["API contracts", "repository ingestion", "agent fanout", "grounded Q&A"],
+  "tour_steps": [
+    {"step":1,"title":"Submit screen","path":"frontend/app/page.tsx","start":1,"end":40,"narration":"The submit screen captures the repository URL and role. It starts the onboarding job only after the GitHub URL passes validation."},
+    {"step":2,"title":"FastAPI routes","path":"backend/routes.py","start":1,"end":80,"narration":"The API creates a job and sends the request into the asynchronous analysis pipeline. This is the boundary between the browser and backend orchestration."},
+    {"step":3,"title":"Repository ingestion","path":"backend/ingest.py","start":1,"end":70,"narration":"The ingestion service performs a shallow Git clone and collects basic repository metadata. This gives downstream agents a concrete local repository to inspect."},
+    {"step":4,"title":"Tree-sitter parser","path":"backend/parser.py","start":1,"end":80,"narration":"The parser walks code files and extracts structural symbols. AST-aware evidence is what makes the later code tour grounded in actual source locations."},
+    {"step":5,"title":"Chunking","path":"backend/chunker.py","start":1,"end":80,"narration":"The chunker converts parsed symbols into bounded evidence units. Those chunks become the retrieval surface for repository questions."},
+    {"step":6,"title":"Bob client","path":"backend/bob_client.py","start":1,"end":120,"narration":"The Bob client isolates the external analysis engine behind a stable interface. The same interface supports the Architecture and Business Logic agents."},
+    {"step":7,"title":"Synthesis","path":"backend/synthesis.py","start":1,"end":120,"narration":"Synthesis ranks evidence and creates exactly eight tour steps. Every step points back to a file and line range that a developer can inspect."},
+    {"step":8,"title":"Grounded Q&A","path":"backend/qa.py","start":1,"end":80,"narration":"Q&A retrieves repository chunks before asking the model to answer. Citation validation prevents answers from displaying unsupported source ranges."}
+  ]
+}
