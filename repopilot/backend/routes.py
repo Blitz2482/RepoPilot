@@ -42,6 +42,9 @@ async def submit_repo(request: RepoSubmitRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
+    # 🔥 PHASE 3 ADDITION: Fire the background pipeline (non-blocking!)
+    asyncio.create_task(run_job(job_id, request.repo_url, request.role))
+    
     return {"job_id": job_id, "status": "queued"}
 
 @router.get("/repos/{job_id}")
@@ -94,27 +97,38 @@ async def ask_question(job_id: str, request: QuestionRequest):
         citations=[Citation(**c) for c in result["citations"]]
     )
 
-# --- WebSocket Endpoint (Restored) ---
+# --- WebSocket Endpoint (PHASE 3 UPGRADE) ---
 
 @router.websocket("/repos/{job_id}/stream")
 async def stream_progress(websocket: WebSocket, job_id: str):
-    """Live progress stream for the frontend analysis screen."""
+    """Live progress stream — polls DB status, never crashes."""
     await websocket.accept()
-    
-    # Check real DB instead of fake jobs_db
-    repo = db.get_repo(job_id)
-    if not repo:
-        await websocket.send_json({"event": "error", "message": "Job not found"})
-        await websocket.close()
-        return
-
+    last_status = None
     try:
-        # Mock stream for now. We will wire Sathwik's LangGraph pipeline here later.
-        await websocket.send_json({"event": "start", "job_id": job_id})
-        await websocket.send_json({"event": "progress", "node": "ingest", "status": "cloning"})
-        await websocket.send_json({"event": "progress", "node": "parse", "status": "parsing"})
-        await websocket.send_json({"event": "complete", "job_id": job_id})
-        
+        while True:
+            repo = db.get_repo(job_id)
+            if not repo:
+                await websocket.send_json({"event": "error", "message": "Job not found"})
+                break
+                
+            status = repo.get("status", "queued")
+            
+            # Only send an update if the status actually changed
+            if status != last_status:
+                await websocket.send_json({"event": "progress", "node": status, "status": status})
+                last_status = status
+                
+            # Stop the stream when the job finishes or fails
+            if status in ("complete", "failed"):
+                await websocket.send_json({
+                    "event": status,
+                    "job_id": job_id,
+                    "error": repo.get("error_message")
+                })
+                break
+                
+            await asyncio.sleep(2) # Poll the DB every 2 seconds
+            
     except WebSocketDisconnect:
         print(f"Client disconnected for job {job_id}")
     except Exception as e:
