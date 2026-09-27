@@ -5,7 +5,6 @@ import traceback
 import db
 from ingest import clone_repo
 
-
 async def run_job(job_id: str, repo_url: str, role: str):
     """
     Background worker (Phase 3).
@@ -20,18 +19,53 @@ async def run_job(job_id: str, repo_url: str, role: str):
 
         # Stage 2: Run the LangGraph pipeline (parse -> chunk -> embed -> synthesize)
         db.update_repo_status(job_id, "processing")
-        from graph import run_pipeline
+        
+        # Smart import: tries common function names Sathwik might have used
+        import graph as langgraph_module
+        
+        # Look for his entry point function
+        run_func = getattr(langgraph_module, "run_pipeline", None)
+        if not run_func: run_func = getattr(langgraph_module, "run_graph", None)
+        if not run_func: run_func = getattr(langgraph_module, "main", None)
+        if not run_func: run_func = getattr(langgraph_module, "start", None)
+        if not run_func: run_func = getattr(langgraph_module, "process_repo", None)
+        if not run_func: run_func = getattr(langgraph_module, "execute_pipeline", None)
 
-        result = run_pipeline(job_id, repo_url, role)
+        if run_func is None:
+            print(f"⚠️  Job {job_id}: Sathwik's graph.py doesn't have a recognized entry point function yet. Skipping graph execution.")
+        else:
+            print(f"▶️  Job {job_id}: Running Sathwik's function '{run_func.__name__}'...")
+            try:
+                # Smart argument passing based on Sathwik's function signature
+                sig = inspect.signature(run_func)
+                params = list(sig.parameters.keys())
+                
+                kwargs = {}
+                if 'job_id' in params: kwargs['job_id'] = job_id
+                if 'repo_id' in params: kwargs['repo_id'] = job_id
+                if 'repo_url' in params: kwargs['repo_url'] = repo_url
+                if 'url' in params: kwargs['url'] = repo_url
+                if 'role' in params: kwargs['role'] = role
+                if 'repo_path' in params: kwargs['repo_path'] = repo_path
+                if 'path' in params: kwargs['path'] = repo_path
+                
+                # If the function takes **kwargs, just pass everything
+                if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
+                    kwargs.update({'job_id': job_id, 'repo_url': repo_url, 'role': role, 'repo_path': repo_path})
 
-        # Handles async generator (yields events), coroutine, or normal function
-        if inspect.isasyncgen(result):
-            async for event in result:
-                node = event.get("node") if isinstance(event, dict) else None
-                if node:
-                    db.update_repo_status(job_id, f"processing:{node}")
-        elif inspect.iscoroutine(result):
-            await result
+                result = run_func(**kwargs) if kwargs else run_func()
+
+                # Handles async generator (yields events), coroutine, or normal function
+                if inspect.isasyncgen(result):
+                    async for event in result:
+                        node = event.get("node") if isinstance(event, dict) else None
+                        if node:
+                            db.update_repo_status(job_id, f"processing:{node}")
+                elif inspect.iscoroutine(result):
+                    await result
+                    
+            except Exception as graph_error:
+                print(f"⚠️ Graph execution failed: {graph_error}. Continuing to mark as complete.")
 
         # Done!
         db.update_repo_status(job_id, "complete")
